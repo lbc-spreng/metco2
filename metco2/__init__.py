@@ -27,7 +27,7 @@ import warnings
 # cmp is not used, so ignore nipype-generated warnings
 warnings.filterwarnings('ignore', r'cmp not installed')
 
-# Citation for the algorithm.
+# Citation for RVT, iHR correction.
 due.cite(Doi('10.1016/j.neuroimage.2009.05.012'),
          description='Introduces cardiac, respiratory response functions.',
-         version=__version__, path='tedana', cite_module=True)
+         version=__version__, path='metco2', cite_module=True)
