@@ -5,7 +5,7 @@
 Base module variables
 """
 
-__version__ = ''
+__version__ = '0.0.1'
 __author__ = 'Elizabeth DuPre'
 __copyright__ = 'Copyright 2017, Elizabeth DuPre'
 __credits__ = ['Elizabeth DuPre']
@@ -15,8 +15,7 @@ __email__ = 'emd222@cornell.edu'
 __status__ = 'Prototype'
 __url__ = 'https://github.com/lbc-spreng/metco2'
 __packagename__ = 'metco2'
-__description__ = ("End-tidal CO2 correction for multi-echo "
-                   "functional magnetic resonance imaging (fMRI) data.")
+__description__ = ("Multi-Echo End-tidal CO2 correction (MEtCO2)")
 __longdesc__ = ("To do.")
 
 DOWNLOAD_URL = (

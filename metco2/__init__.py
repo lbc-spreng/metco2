@@ -2,7 +2,8 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """
-metco2: A Python package for correcting end-tidal CO2 fluctuations in multi-echo data.
+MEtCO2: A Python package for correcting
+end-tidal CO2 fluctuations in multi-echo data.
 """
 
 from .due import (due, Doi)

@@ -1,9 +1,13 @@
 #!/usr/bin/env python
-""" metco2 setup script """
+"""
+MEtCO2 setup script
+"""
 
 
 def main():
-    """ Install entry-point """
+    """
+    Install entry-point.
+    """
     from io import open
     from os import path as op
     from inspect import getfile, currentframe
@@ -33,15 +37,14 @@ def main():
         license=ldict['__license__'],
         classifiers=ldict['CLASSIFIERS'],
         download_url=ldict['DOWNLOAD_URL'],
-        # Dependencies handling
         install_requires=ldict['REQUIRES'],
         tests_require=ldict['TESTS_REQUIRES'],
         extras_require=ldict['EXTRA_REQUIRES'],
         entry_points={'console_scripts': [
-            'metco2=metco2.cli.run_metco2:main'
+            'metco2=metco2.cli.run:main'
         ]},
         packages=find_packages(exclude=("tests",)),
-        zip_safe=False,
+        zip_safe=False
     )
 
 
