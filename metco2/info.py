@@ -25,12 +25,10 @@ DOWNLOAD_URL = (
 REQUIRES = [
     'numpy',
     'nipype',
-    'pybids>=0.4.0',
     'scipy'
 ]
 
 LINKS_REQUIRES = [
-    'git+https://github.com/rmarkello/peakdet.git'
 ]
 
 TESTS_REQUIRES = [

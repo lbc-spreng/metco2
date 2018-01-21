@@ -38,11 +38,10 @@ def main():
         classifiers=ldict['CLASSIFIERS'],
         download_url=ldict['DOWNLOAD_URL'],
         install_requires=ldict['REQUIRES'],
+        dependency_links=['http://github.com/rmarkello/peakdet/tarball/master#egg=package-1.0'],
         tests_require=ldict['TESTS_REQUIRES'],
         extras_require=ldict['EXTRA_REQUIRES'],
-        entry_points={'console_scripts': [
-            'metco2=metco2.cli.run:main'
-        ]},
+        entry_points={'console_scripts': ['metco2=metco2.cli.run:main']},
         packages=find_packages(exclude=("tests",)),
         zip_safe=False
     )
