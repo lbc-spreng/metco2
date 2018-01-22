@@ -1,7 +1,7 @@
+from nipype.interfaces import afni
 import nipype.interfaces.io as nio
-import nipype.pipeline.engine as pe
+from niworkflows.nipype.pipeline import engine as pe
 from niworkflows.nipype.interfaces import utility as niu
-from nipype.interfaces.afni.model import (Deconvolve, Synthesize)
 
 
 def init_metco2_wf(images, events, confounds, subject_id, out_dir):
@@ -27,8 +27,7 @@ def init_metco2_wf(images, events, confounds, subject_id, out_dir):
     metco2_wf = pe.Workflow(name='metco2_wf')
 
     # input node for gathering relevant files
-    inputnode = pe.Node(niu.IdentityInterface(fields=['subject_id',
-                                                      'images',
+    inputnode = pe.Node(niu.IdentityInterface(fields=['subject_id', 'images',
                                                       'events']),
                         name='inputnode')
 
@@ -38,15 +37,14 @@ def init_metco2_wf(images, events, confounds, subject_id, out_dir):
                         name='gen_stims')
 
     # run a GLM in AFNI using 3dDeconvolve
-    deconvolve = pe.Node(Deconvolve(),
-                         name='deconvolve')
+    deconvolve = pe.Node(afni.Deconvolve(), name='deconvolve')
     deconvolve.inputs.ortvec = (confounds, 'confounds')
     deconvolve.inputs.x1D = 'matrix.1D'
     deconvolve.inputs.cbucket = 'cbucket'
 
     # use 3dSynthesize to remove the variance associated with
     # our physiological confounds
-    syn = pe.Node(Synthesize(outputtype='NIFTI_GZ'), name='synthesize')
+    syn = pe.Node(afni.Synthesize(outputtype='NIFTI_GZ'), name='synthesize')
     syn.inputs.select = ['baseline', 'polort', 'allfunc']
 
     # save out the corrected data to a datasink
@@ -86,6 +84,6 @@ def _gen_stim_list(event_list):
     stim_tuples = []
 
     for i in range(len(event_list)):
-        stim_tuples.append((i, event_list[i], 'SPMG1'))
+        stim_tuples.append((i, event_list[i], 'BLOCK(10,1)'))
 
     return stim_tuples

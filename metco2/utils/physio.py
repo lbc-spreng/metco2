@@ -1,7 +1,9 @@
 import peakdet
 import numpy as np
-from math import (exp, pi, sqrt)
+from math import (pi, sqrt)
 from scipy.signal import convolve
+
+# NOTE: the argument values are specific to the ATTA scan sequence
 
 
 def convolve_ts(physio_f):
@@ -31,11 +33,7 @@ def convolve_ts(physio_f):
         print('WARNING: Physio format not understood! \n'
               'No confound timeseries will be generated.')
         return
-
-    # account for dropped volumes, extra samples.
-    # the values here are specific to the ATTA scan sequence
-    response_func = response_func[4:235]
-    return convolve(timeseries, response_func)
+    return convolve(timeseries, response_func, mode='same')
 
 
 def crf(tr=2.0):
@@ -54,9 +52,13 @@ def crf(tr=2.0):
     crf: array-like
         cardiac or "heart" response function
     """
+    def _crf(t):
+        rf = (0.6 * t ** 2.7 * np.exp(-t / 1.6) -
+              16 * (1 / sqrt(2 * pi * 9)) * np.exp(-0.5 * (((t - 12) ** 2)/9)))
+        return rf
+
     t = np.arange(0, 32, tr)
-    crf = (0.6 * t ** 2.7 * exp(-t / 1.6) -
-           16 * (1 / sqrt(2 * pi * 9)) * exp(-0.5 * (((t - 12) ** 2)/9)))
+    crf = _crf(t)
     crf = crf / max(abs(crf))
     return crf
 
@@ -86,8 +88,7 @@ def i_hr(physio_f, samplerate=40, tr=2.0):
     datafile = physio_f
     ppg = peakdet.PPG(datafile, samplerate)
     ppg.get_peaks()
-    ppg.TR = tr
-    return ppg.iHR(step=2)
+    return ppg.iHR(step=2, start=8.0, end=438.0, TR=tr)
 
 
 def rrf(tr=2.0):
@@ -106,9 +107,13 @@ def rrf(tr=2.0):
     rrf: array-like
         respiratory response function
     """
+    def _rrf(t):
+        rf = (0.6 * t ** 2.1 * np.exp(-t / 1.6) -
+              0.0023 * t ** 3.54 * np.exp(-t / 4.25))
+        return rf
+
     t = np.arange(0, 50, tr)
-    rrf = (0.6 * t ** 2.1 * exp(-t / 1.6) -
-           0.0023 * t ** 3.54 * exp(-t / 4.25))
+    rrf = _rrf(t)
     rrf = rrf / max(abs(rrf))
     return rrf
 
@@ -137,6 +142,5 @@ def rvt(physio_f, samplerate=40, tr=2.0):
     """
     datafile = physio_f
     resp = peakdet.RESP(datafile, samplerate)
-    resp.get_peaks(thresh=0.1)
-    resp.TR = tr
-    return resp.RVT()
+    resp.get_peaks(thresh=0.2)
+    return resp.RVT(start=8.0, end=438.0, TR=tr)

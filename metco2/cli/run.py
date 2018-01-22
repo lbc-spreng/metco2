@@ -40,21 +40,39 @@ def main():
     """
     Entry point.
     """
+    from ..info import __version__
     opts = get_parser().parse_args()
 
     output_dir = os.path.abspath(opts.output_dir)
     os.makedirs(output_dir, exist_ok=True)
+    data_dir = os.path.abspath(opts.data_dir)
 
     subjects = create_subj_list(opts.data_dir,
                                 selected=opts.participant_label)
+
+    init_msg = """
+    Running MEtCO2 version {version}:
+      * BIDS dataset path: {data_dir}.
+      * Participant list: {participant_list}.
+    """.format
+
+    print(init_msg(version=__version__,
+                   data_dir=data_dir,
+                   participant_list=subjects))
+
     for s in subjects:
-        images, events, physio = gather_inputs(opts.data_dir, s)
-        confounds_fname = os.path.join(opts.data_dir, s + '_confounds.txt')
-        np.savetxt(confounds_fname, [convolve_ts(p) for p in physio],
-                   fmt='%10.5f')
-        workflow = init_metco2_wf(images, events, confounds_fname,
-                                  s, output_dir)
-        workflow.run('MultiProc', plugin_args={'n_procs': 6})
+        images, physio, events = gather_inputs(opts.data_dir, s)
+        for i, image in enumerate(images):
+            # a little ugliness, since we're not in BIDS
+            run_num = os.path.basename(image).split('.')[0].split('_')[-1]
+            confounds_fname = os.path.join(data_dir, s,
+                                           '{}_confounds_{}.txt'.format(s, run_num))
+            hr, resp = [convolve_ts(p) for p in physio[i]]
+            np.savetxt(confounds_fname, np.transpose([hr, resp]),
+                       fmt='%10.5f')
+            workflow = init_metco2_wf(images, events, confounds_fname,
+                                      s, output_dir)
+            workflow.run('MultiProc', plugin_args={'n_procs': 6})
 
 
 if __name__ == "__main__":
