@@ -1,7 +1,7 @@
 from nipype.interfaces import afni
 import nipype.interfaces.io as nio
-from niworkflows.nipype.pipeline import engine as pe
-from niworkflows.nipype.interfaces import utility as niu
+from nipype.pipeline import engine as pe
+from nipype.interfaces import utility as niu
 
 
 def init_metco2_wf(images, events, confounds, subject_id, out_dir):
@@ -30,6 +30,9 @@ def init_metco2_wf(images, events, confounds, subject_id, out_dir):
     inputnode = pe.Node(niu.IdentityInterface(fields=['subject_id', 'images',
                                                       'events']),
                         name='inputnode')
+    inputnode.inputs.subject_id = subject_id
+    inputnode.inputs.images = images
+    inputnode.inputs.events = events
 
     gen_stims = pe.Node(niu.Function(input_names=['event_list'],
                                      output_names=['stim_tuples'],
@@ -38,14 +41,15 @@ def init_metco2_wf(images, events, confounds, subject_id, out_dir):
 
     # run a GLM in AFNI using 3dDeconvolve
     deconvolve = pe.Node(afni.Deconvolve(), name='deconvolve')
-    deconvolve.inputs.ortvec = (confounds, 'confounds')
-    deconvolve.inputs.x1D = 'matrix.1D'
-    deconvolve.inputs.cbucket = 'cbucket'
+    deconvolve.inputs.args = '-ortvec {} confounds'.format(confounds)
+    deconvolve.inputs.x1D = 'mat'
+    deconvolve.inputs.cbucket = 'cbucket.nii'
 
     # use 3dSynthesize to remove the variance associated with
     # our physiological confounds
-    syn = pe.Node(afni.Synthesize(outputtype='NIFTI_GZ'), name='synthesize')
+    syn = pe.Node(afni.Synthesize(), name='syn')
     syn.inputs.select = ['baseline', 'polort', 'allfunc']
+    syn.inputs.out_file = 'syn.nii'
 
     # save out the corrected data to a datasink
     datasink = pe.Node(nio.DataSink(), name='datasink')
@@ -53,11 +57,10 @@ def init_metco2_wf(images, events, confounds, subject_id, out_dir):
 
     metco2_wf.connect([
         (inputnode, gen_stims, [('events', 'event_list')]),
-        (gen_stims, deconvolve, ['stim_tuples', 'stim_times']),
-        (inputnode, deconvolve, [('images', 'in_files'),
-                                 (('events', len), 'num_stimts')]),
-        (deconvolve, syn, [('cbucket', 'cbucket'),
-                           ('x1D', 'matrix')]),
+        (gen_stims, deconvolve, [('stim_tuples', 'stim_times')]),
+        (inputnode, deconvolve, [('images', 'in_files')]),
+        (deconvolve, syn, [('x1D', 'matrix'),
+                           ('cbucket', 'cbucket')]),
         (inputnode, datasink, [('subject_id', 'container')]),
         (syn, datasink, [('out_file', 'physio_corr')])
     ])
@@ -84,6 +87,9 @@ def _gen_stim_list(event_list):
     stim_tuples = []
 
     for i in range(len(event_list)):
-        stim_tuples.append((i, event_list[i], 'BLOCK(10,1)'))
-
+        stim_tuples.append(((i + 1), event_list[i], 'BLOCK(10,1)'))
     return stim_tuples
+
+
+def _length(x):
+    return len(x)

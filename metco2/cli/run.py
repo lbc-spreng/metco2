@@ -53,26 +53,33 @@ def main():
     init_msg = """
     Running MEtCO2 version {version}:
       * BIDS dataset path: {data_dir}.
+      * Output path: {output_dir}
       * Participant list: {participant_list}.
     """.format
 
     print(init_msg(version=__version__,
                    data_dir=data_dir,
+                   output_dir=output_dir,
                    participant_list=subjects))
 
-    for s in subjects:
-        images, physio, events = gather_inputs(opts.data_dir, s)
+    for subj in subjects:
+        images, physio, events = gather_inputs(data_dir, subj)
+
+        hr, resp = [], []
         for i, image in enumerate(images):
-            # a little ugliness, since we're not in BIDS
-            run_num = os.path.basename(image).split('.')[0].split('_')[-1]
-            confounds_fname = os.path.join(data_dir, s,
-                                           '{}_confounds_{}.txt'.format(s, run_num))
-            hr, resp = [convolve_ts(p) for p in physio[i]]
-            np.savetxt(confounds_fname, np.transpose([hr, resp]),
-                       fmt='%10.5f')
-            workflow = init_metco2_wf(images, events, confounds_fname,
-                                      s, output_dir)
-            workflow.run('MultiProc', plugin_args={'n_procs': 6})
+            _hr, _resp = [convolve_ts(p) for p in physio[i]]
+            hr = np.append(hr, _hr)
+            resp = np.append(resp, _resp)
+
+        confounds_fname = os.path.join(data_dir, subj,
+                                       '{}_confounds.txt'.format(subj))
+        np.savetxt(confounds_fname, np.transpose([hr, resp]), fmt='%10.5f')
+        workflow = init_metco2_wf(images, events, confounds_fname,
+                                  subj, output_dir)
+        workflow.config['execution'] = {'remove_unnecessary_outputs': False,
+                                        'keep_inputs': True}
+        workflow.write_graph(graph2use='flat')
+        workflow.run('MultiProc', plugin_args={'n_procs': 6})
 
 
 if __name__ == "__main__":

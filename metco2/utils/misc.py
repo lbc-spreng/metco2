@@ -36,6 +36,5 @@ def gather_inputs(data_dir, subj):
     data_files = sorted(glob.glob(os.path.join(data_dir, subj, '*.nii.gz')))
     phys_files = glob.glob(os.path.join(data_dir, subj, '*.1D'))
     phys_files = group_phys(phys_files)
-    timings = sorted(glob.glob(os.path.join(data_dir, subj, '*.txt')))
-
+    timings = sorted(glob.glob(os.path.join(data_dir, subj, '*condition*.txt')))
     return data_files, phys_files, timings
