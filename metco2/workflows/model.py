@@ -1,3 +1,4 @@
+from os.path import join as pathjoin
 from nipype.interfaces import afni
 import nipype.interfaces.io as nio
 from nipype.pipeline import engine as pe
@@ -25,9 +26,11 @@ def init_metco2_wf(images, events, confounds, subject_id, out_dir):
         4D NIfTI image
     """
     metco2_wf = pe.Workflow(name='metco2_wf')
+    metco2_wf.base_dir = pathjoin(out_dir, 'working')
 
     # input node for gathering relevant files
-    inputnode = pe.Node(niu.IdentityInterface(fields=['subject_id', 'images',
+    inputnode = pe.Node(niu.IdentityInterface(fields=['subject_id',
+                                                      'images',
                                                       'events']),
                         name='inputnode')
     inputnode.inputs.subject_id = subject_id
@@ -49,20 +52,19 @@ def init_metco2_wf(images, events, confounds, subject_id, out_dir):
     # our physiological confounds
     syn = pe.Node(afni.Synthesize(), name='syn')
     syn.inputs.select = ['baseline', 'polort', 'allfunc']
-    syn.inputs.out_file = 'syn.nii'
 
     # save out the corrected data to a datasink
     datasink = pe.Node(nio.DataSink(), name='datasink')
     datasink.inputs.base_directory = out_dir
 
     metco2_wf.connect([
-        (inputnode, gen_stims, [('events', 'event_list')]),
-        (gen_stims, deconvolve, [('stim_tuples', 'stim_times')]),
-        (inputnode, deconvolve, [('images', 'in_files')]),
-        (deconvolve, syn, [('x1D', 'matrix'),
-                           ('cbucket', 'cbucket')]),
-        (inputnode, datasink, [('subject_id', 'container')]),
-        (syn, datasink, [('out_file', 'physio_corr')])
+        (inputnode, gen_stims,  [('events',         'event_list')]),
+        (gen_stims, deconvolve, [('stim_tuples',    'stim_times')]),
+        (inputnode, deconvolve, [('images',         'in_files')]),
+        (deconvolve, syn,       [('x1D',            'matrix'),
+                                 ('cbucket',        'cbucket')]),
+        (inputnode, datasink,   [('subject_id',     'metco2_wf.@container')]),
+        (syn, datasink,         [('out_file',       'metco2_wf.@physio_corr')])
     ])
 
     return metco2_wf

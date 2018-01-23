@@ -76,8 +76,7 @@ def main():
         np.savetxt(confounds_fname, np.transpose([hr, resp]), fmt='%10.5f')
         workflow = init_metco2_wf(images, events, confounds_fname,
                                   subj, output_dir)
-        workflow.config['execution'] = {'remove_unnecessary_outputs': False,
-                                        'keep_inputs': True}
+        workflow.config['execution'] = {'remove_unnecessary_outputs': False}
         workflow.write_graph(graph2use='flat')
         workflow.run('MultiProc', plugin_args={'n_procs': 6})
 
