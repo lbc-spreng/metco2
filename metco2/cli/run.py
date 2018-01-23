@@ -73,7 +73,7 @@ def main():
                                                                         run))
             np.savetxt(confounds_fname, np.transpose([hr, resp]), fmt='%10.5f')
 
-            workflow = init_metco2_wf(images, events, confounds_fname,
+            workflow = init_metco2_wf(images[i], events[i], confounds_fname,
                                       subj, output_dir)
             # for debugging:
             # workflow.config['execution'] = {'remove_unnecessary_outputs': False,

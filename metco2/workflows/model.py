@@ -1,4 +1,4 @@
-from os.path import join as pathjoin
+import os
 from nipype.interfaces import afni
 import nipype.interfaces.io as nio
 from nipype.pipeline import engine as pe
@@ -26,7 +26,7 @@ def init_metco2_wf(images, events, confounds, subject_id, out_dir):
         4D NIfTI image
     """
     metco2_wf = pe.Workflow(name='metco2_wf')
-    metco2_wf.base_dir = pathjoin(out_dir, 'working')
+    metco2_wf.base_dir = os.path.join(out_dir, 'working')
 
     # input node for gathering relevant files
     inputnode = pe.Node(niu.IdentityInterface(fields=['subject_id',
@@ -52,6 +52,7 @@ def init_metco2_wf(images, events, confounds, subject_id, out_dir):
     # our physiological confounds
     syn = pe.Node(afni.Synthesize(), name='syn')
     syn.inputs.select = ['baseline', 'polort', 'allfunc']
+    syn.inputs.outfile = 'rvt_corr' + os.basename(images)
 
     # save out the corrected data to a datasink
     datasink = pe.Node(nio.DataSink(), name='datasink')
