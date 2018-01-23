@@ -1,7 +1,7 @@
 import os
 import glob
 from itertools import groupby
-from utils.file_manip import (split_dmat_txt, sort_and_write)
+from ..utils.file_manip import (split_dmat_txt, sort_and_write)
 
 
 def group_phys(phys_files):

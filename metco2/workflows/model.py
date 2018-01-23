@@ -52,7 +52,7 @@ def init_metco2_wf(images, events, confounds, subject_id, out_dir):
     # our physiological confounds
     syn = pe.Node(afni.Synthesize(), name='syn')
     syn.inputs.select = ['baseline', 'polort', 'allfunc']
-    syn.inputs.outfile = 'rvt_corr' + os.basename(images)
+    syn.inputs.out_file = 'phys_corr_' + os.path.basename(images)
 
     # save out the corrected data to a datasink
     datasink = pe.Node(nio.DataSink(), name='datasink')
@@ -65,7 +65,7 @@ def init_metco2_wf(images, events, confounds, subject_id, out_dir):
         (deconvolve, syn, [('x1D', 'matrix'),
                            ('cbucket', 'cbucket')]),
         (inputnode, datasink, [('subject_id', 'container')]),
-        (syn, datasink, [('out_file', 'physio_corr')])
+        (syn, datasink, [('out_file', 'phys_corr')])
     ])
 
     return metco2_wf

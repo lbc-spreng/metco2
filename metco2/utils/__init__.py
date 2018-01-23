@@ -9,3 +9,9 @@ from .misc import (
 )
 
 from .physio import convolve_ts
+
+from .file_manip import (
+    sort_and_write,
+    split_dmat_txt
+
+)
