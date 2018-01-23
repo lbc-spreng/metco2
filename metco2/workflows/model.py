@@ -58,13 +58,13 @@ def init_metco2_wf(images, events, confounds, subject_id, out_dir):
     datasink.inputs.base_directory = out_dir
 
     metco2_wf.connect([
-        (inputnode, gen_stims,  [('events',         'event_list')]),
-        (gen_stims, deconvolve, [('stim_tuples',    'stim_times')]),
-        (inputnode, deconvolve, [('images',         'in_files')]),
-        (deconvolve, syn,       [('x1D',            'matrix'),
-                                 ('cbucket',        'cbucket')]),
-        (inputnode, datasink,   [('subject_id',     'metco2_wf.@container')]),
-        (syn, datasink,         [('out_file',       'metco2_wf.@physio_corr')])
+        (inputnode, gen_stims, [('events', 'event_list')]),
+        (gen_stims, deconvolve, [('stim_tuples', 'stim_times')]),
+        (inputnode, deconvolve, [('images', 'in_files')]),
+        (deconvolve, syn, [('x1D', 'matrix'),
+                           ('cbucket', 'cbucket')]),
+        (inputnode, datasink, [('subject_id', 'container')]),
+        (syn, datasink, [('out_file', 'physio_corr')])
     ])
 
     return metco2_wf

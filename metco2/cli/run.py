@@ -64,21 +64,23 @@ def main():
 
     for subj in subjects:
         images, physio, events = gather_inputs(data_dir, subj)
-
-        hr, resp = [], []
         for i, image in enumerate(images):
-            _hr, _resp = [convolve_ts(p) for p in physio[i]]
-            hr = np.append(hr, _hr)
-            resp = np.append(resp, _resp)
+            run = image.split('.')[0].split('_')[1]  # some non-BIDS ugliness
 
-        confounds_fname = os.path.join(data_dir, subj,
-                                       '{}_confounds.txt'.format(subj))
-        np.savetxt(confounds_fname, np.transpose([hr, resp]), fmt='%10.5f')
-        workflow = init_metco2_wf(images, events, confounds_fname,
-                                  subj, output_dir)
-        workflow.config['execution'] = {'remove_unnecessary_outputs': False}
-        workflow.write_graph(graph2use='flat')
-        workflow.run('MultiProc', plugin_args={'n_procs': 6})
+            hr, resp = [convolve_ts(p) for p in physio[i]]
+            confounds_fname = os.path.join(data_dir, subj,
+                                           '{}_confounds_{}.txt'.format(subj,
+                                                                        run))
+            np.savetxt(confounds_fname, np.transpose([hr, resp]), fmt='%10.5f')
+
+            workflow = init_metco2_wf(images, events, confounds_fname,
+                                      subj, output_dir)
+            # for debugging:
+            # workflow.config['execution'] = {'remove_unnecessary_outputs': False,
+            #                                 'keep_inputs': True,
+            #                                 'try_hard_link_datasink': False}
+            workflow.write_graph(graph2use='flat')
+            workflow.run('MultiProc', plugin_args={'n_procs': 6})
 
 
 if __name__ == "__main__":
